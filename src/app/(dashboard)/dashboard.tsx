@@ -34,6 +34,7 @@ type Transaction = {
   category: string;
   type: "INCOME" | "EXPENSE";
   amount: number;
+  description?: string;
 };
 
 export function Dashboard() {
@@ -45,6 +46,9 @@ export function Dashboard() {
   const [type, setType] = useState<"INCOME" | "EXPENSE">("EXPENSE");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const fetchTransactions = async () => {
     setIsLoading(true);
@@ -63,23 +67,55 @@ export function Dashboard() {
     fetchTransactions();
   }, []);
 
+  const resetForm = () => {
+    setAmount("");
+    setType("EXPENSE");
+    setCategory("");
+    setDescription("");
+    setEditingId(null);
+  };
+
   const handleSubmit = async () => {
-    const res = await fetch("/api/transactions", {
-      method: "POST",
-      body: JSON.stringify({
-        amount: parseFloat(amount),
-        type,
-        category,
-        description,
-      }),
+    const payload = {
+      amount: parseFloat(amount),
+      type,
+      category,
+      description,
+    };
+
+    const url = editingId
+      ? `/api/transactions/${editingId}`
+      : "/api/transactions";
+    const method = editingId ? "PUT" : "POST";
+
+    const res = await fetch(url, {
+      method,
+      body: JSON.stringify(payload),
     });
 
     if (res.ok) {
       await fetchTransactions();
-      setAmount("");
-      setType("EXPENSE");
-      setCategory("");
-      setDescription("");
+      resetForm();
+      setIsDialogOpen(false);
+    }
+  };
+
+  const handleEditClick = (txn: Transaction) => {
+    setEditingId(txn.id);
+    setAmount(txn.amount.toString());
+    setType(txn.type);
+    setCategory(txn.category);
+    setDescription(txn.description || "");
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    const res = await fetch(`/api/transactions/${id}`, {
+      method: "DELETE",
+    });
+
+    if (res.ok) {
+      await fetchTransactions();
     }
   };
 
@@ -98,13 +134,17 @@ export function Dashboard() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Dashboard</h1>
 
-        <Dialog>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="default">+ Nueva Transacción</Button>
+            <Button variant="default" onClick={() => resetForm()}>
+              + Nueva Transacción
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Crear Transacción</DialogTitle>
+              <DialogTitle>
+                {editingId ? "Editar Transacción" : "Crear Transacción"}
+              </DialogTitle>
             </DialogHeader>
 
             <div className="space-y-4">
@@ -138,7 +178,7 @@ export function Dashboard() {
                 onChange={(e) => setDescription(e.target.value)}
               />
               <Button onClick={handleSubmit} className="w-full">
-                Guardar
+                {editingId ? "Guardar Cambios" : "Guardar"}
               </Button>
             </div>
           </DialogContent>
@@ -197,6 +237,7 @@ export function Dashboard() {
                   <TableHead>Category</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -217,6 +258,22 @@ export function Dashboard() {
                           +${txn.amount.toFixed(2)}
                         </span>
                       )}
+                    </TableCell>
+                    <TableCell className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditClick(txn)}
+                      >
+                        Editar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(txn.id)}
+                      >
+                        Eliminar
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
