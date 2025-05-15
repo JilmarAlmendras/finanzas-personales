@@ -27,6 +27,10 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Income } from "@/components/icons/income";
+import { Expenses } from "@/components/icons/expenses";
+import { parseTransactionType } from "@/utils/parseTransactionType";
+import { Pencil, Trash2 } from "lucide-react";
 
 type Transaction = {
   id: string;
@@ -132,7 +136,7 @@ export function Dashboard() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <h1 className="text-3xl font-bold">Tablero de control</h1>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -188,41 +192,61 @@ export function Dashboard() {
       {/* Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle>Total Income</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold text-green-600">
-              ${totalIncome.toFixed(2)}
-            </p>
-          </CardContent>
+          <div className="flex justify-between pr-[20px]">
+            <div className="w-full flex flex-col justify-between">
+              <CardHeader>
+                <CardTitle>Ingresos totales</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold text-green-600">
+                  Bs. {totalIncome.toFixed(2)}
+                </p>
+              </CardContent>
+            </div>
+
+            <Income />
+          </div>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Total Expenses</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold text-red-600">
-              ${totalExpenses.toFixed(2)}
-            </p>
-          </CardContent>
+          <div className="flex justify-between pr-[20px]">
+            <div className="w-full flex flex-col justify-between">
+              <CardHeader>
+                <CardTitle>Gastos totales</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold text-red-600">
+                  Bs. {totalExpenses.toFixed(2)}
+                </p>
+              </CardContent>
+            </div>
+
+            <Expenses />
+          </div>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Net Balance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">${netBalance.toFixed(2)}</p>
-          </CardContent>
+          <div className="flex justify-between pr-[20px]">
+            <div className="w-full flex flex-col justify-between">
+              <CardHeader>
+                <CardTitle>Balance neto</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold">
+                  Bs. {netBalance.toFixed(2)}
+                </p>
+              </CardContent>
+            </div>
+
+            {netBalance >= 0 ? <Income /> : <Expenses />}
+          </div>
         </Card>
       </div>
 
       {/* Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
+          <CardTitle>Transacciones recientes</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -233,11 +257,11 @@ export function Dashboard() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead className="text-right">Importe</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -247,32 +271,33 @@ export function Dashboard() {
                       {new Date(txn.date).toLocaleDateString()}
                     </TableCell>
                     <TableCell>{txn.category}</TableCell>
-                    <TableCell>{txn.type}</TableCell>
+                    <TableCell>{parseTransactionType(txn.type)}</TableCell>
                     <TableCell className="text-right">
                       {txn.type === "EXPENSE" ? (
                         <span className="text-red-600">
-                          -${txn.amount.toFixed(2)}
+                          -Bs. {txn.amount.toFixed(2)}
                         </span>
                       ) : (
                         <span className="text-green-600">
-                          +${txn.amount.toFixed(2)}
+                          +Bs. {txn.amount.toFixed(2)}
                         </span>
                       )}
                     </TableCell>
                     <TableCell className="flex justify-end gap-2">
                       <Button
                         variant="outline"
-                        size="sm"
+                        size="icon"
                         onClick={() => handleEditClick(txn)}
                       >
-                        Editar
+                        <Pencil className="h-4 w-4" />
                       </Button>
+
                       <Button
                         variant="destructive"
-                        size="sm"
+                        size="icon"
                         onClick={() => handleDelete(txn.id)}
                       >
-                        Eliminar
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
