@@ -53,6 +53,7 @@ export function Profile() {
               <span className="truncate font-semibold">
                 {session?.user?.name}
               </span>
+              <span className="truncate text-xs">{session?.user?.email}</span>
             </div>
           </div>
         </DropdownMenuLabel>

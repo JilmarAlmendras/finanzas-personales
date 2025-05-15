@@ -38,34 +38,34 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Correo electrónico</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Ingresa tu correo"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Contraseña</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Ingresa tu contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
             <Button type="submit" className="w-full">
-              Log in
+              Ingresar
             </Button>
           </form>
           <div className="mt-4 text-center">
             <p>
-              No tienes cuenta,{" "}
+              No tienes cuenta?,{" "}
               <a href="/signup" className="text-blue-500 hover:underline">
-                Regístrate
+                Regístrate!!
               </a>
             </p>
           </div>

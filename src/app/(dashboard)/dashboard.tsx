@@ -54,6 +54,12 @@ export function Dashboard() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  // Delete confirmation state
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [selectedToDeleteId, setSelectedToDeleteId] = useState<string | null>(
+    null
+  );
+
   const fetchTransactions = async () => {
     setIsLoading(true);
     try {
@@ -113,13 +119,17 @@ export function Dashboard() {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    const res = await fetch(`/api/transactions/${id}`, {
+  const handleDelete = async () => {
+    if (!selectedToDeleteId) return;
+
+    const res = await fetch(`/api/transactions/${selectedToDeleteId}`, {
       method: "DELETE",
     });
 
     if (res.ok) {
       await fetchTransactions();
+      setSelectedToDeleteId(null);
+      setIsConfirmOpen(false);
     }
   };
 
@@ -250,9 +260,9 @@ export function Dashboard() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p>Loading...</p>
+            <p>Cargando...</p>
           ) : transactions.length === 0 ? (
-            <p>No transactions found.</p>
+            <p>No se encontraron transacciones.</p>
           ) : (
             <Table>
               <TableHeader>
@@ -292,13 +302,54 @@ export function Dashboard() {
                         <Pencil className="h-4 w-4" />
                       </Button>
 
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => handleDelete(txn.id)}
+                      <Dialog
+                        open={isConfirmOpen && selectedToDeleteId === txn.id}
+                        onOpenChange={(open) => {
+                          if (!open) {
+                            setSelectedToDeleteId(null);
+                            setIsConfirmOpen(false);
+                          }
+                        }}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => {
+                              setSelectedToDeleteId(txn.id);
+                              setIsConfirmOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>¿Estás seguro?</DialogTitle>
+                          </DialogHeader>
+                          <p>
+                            Esta acción eliminará la transacción
+                            permanentemente.
+                          </p>
+                          <div className="flex justify-end gap-2 mt-4">
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setIsConfirmOpen(false);
+                                setSelectedToDeleteId(null);
+                              }}
+                            >
+                              Cancelar
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              onClick={handleDelete}
+                            >
+                              Eliminar
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </TableCell>
                   </TableRow>
                 ))}
