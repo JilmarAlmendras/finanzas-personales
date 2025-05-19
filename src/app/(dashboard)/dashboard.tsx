@@ -50,7 +50,6 @@ export function Dashboard() {
   const [type, setType] = useState<"INCOME" | "EXPENSE">("EXPENSE");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
-
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -59,6 +58,9 @@ export function Dashboard() {
   const [selectedToDeleteId, setSelectedToDeleteId] = useState<string | null>(
     null
   );
+
+  // Filter by date
+  const [filterDate, setFilterDate] = useState("");
 
   const fetchTransactions = async () => {
     setIsLoading(true);
@@ -143,6 +145,11 @@ export function Dashboard() {
 
   const netBalance = totalIncome - totalExpenses;
 
+  // Filter transactions by date (only local filtering)
+  const filteredTransactions = filterDate
+    ? transactions.filter((txn) => txn.date.startsWith(filterDate))
+    : transactions;
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -213,7 +220,6 @@ export function Dashboard() {
                 </p>
               </CardContent>
             </div>
-
             <Income />
           </div>
         </Card>
@@ -230,7 +236,6 @@ export function Dashboard() {
                 </p>
               </CardContent>
             </div>
-
             <Expenses />
           </div>
         </Card>
@@ -247,13 +252,25 @@ export function Dashboard() {
                 </p>
               </CardContent>
             </div>
-
             {netBalance >= 0 ? <Income /> : <Expenses />}
           </div>
         </Card>
       </div>
 
-      {/* Table */}
+      {/* Filtro por fecha */}
+      <div className="flex items-center justify-end gap-2">
+        <Input
+          type="date"
+          value={filterDate}
+          onChange={(e) => setFilterDate(e.target.value)}
+          className="w-fit"
+        />
+        <Button variant="outline" onClick={() => setFilterDate("")}>
+          Limpiar filtro
+        </Button>
+      </div>
+
+      {/* Tabla */}
       <Card>
         <CardHeader>
           <CardTitle>Transacciones recientes</CardTitle>
@@ -261,7 +278,7 @@ export function Dashboard() {
         <CardContent>
           {isLoading ? (
             <p>Cargando...</p>
-          ) : transactions.length === 0 ? (
+          ) : filteredTransactions.length === 0 ? (
             <p>No se encontraron transacciones.</p>
           ) : (
             <Table>
@@ -275,7 +292,7 @@ export function Dashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {transactions.map((txn) => (
+                {filteredTransactions.map((txn) => (
                   <TableRow key={txn.id}>
                     <TableCell>
                       {new Date(txn.date).toLocaleDateString()}
